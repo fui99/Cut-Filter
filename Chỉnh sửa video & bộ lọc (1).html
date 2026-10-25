@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="color-scheme" content="light dark"/>
+<link rel="icon" href="data:,"/>
+<title>Chỉnh sửa video & bộ lọc</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f5f2; --panel:#ffffff; --panel2:#f0efec; --ink:#16181d; --muted:#6b7280; --line:#e5e2dc;
+  --accent:#ff5c28; --accent2:#0ea5a4; --dark:#121317; --dark2:#1c1e24;
+  --radius:18px;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0f1013;--panel:#17181d;--panel2:#1f2026;--ink:#f3f4f6;--muted:#9ca3af;--line:#2a2b33}
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Be Vietnam Pro",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+a{color:inherit}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;gap:12px;max-width:1180px;margin:0 auto;flex-wrap:wrap}
+@media(max-width:560px){.pill{white-space:normal;font-size:11px}}
+.logo{display:flex;align-items:center;gap:10px;font-weight:900;letter-spacing:-.02em;font-size:18px}
+.logo-mark{width:36px;height:36px;border-radius:10px;background:var(--ink);color:var(--bg);display:grid;place-items:center;font-size:18px}
+.topbar p{margin:0;color:var(--muted);font-size:13px;font-weight:600}
+.pill{font-size:12px;font-weight:700;background:#e6f7f5;color:#0f766e;border:1px solid #bfece8;padding:7px 10px;border-radius:999px;white-space:nowrap}
+@media(prefers-color-scheme:dark){.pill{background:#12312f;color:#5eead4;border-color:#134e4a}}
+.wrap{max-width:1180px;margin:0 auto;padding:0 14px 28px}
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:16px;margin:6px 0 16px}
+@media(max-width:800px){.hero{grid-template-columns:1fr}}
+.hero-card{background:var(--ink);color:white;border-radius:22px;padding:22px 22px 20px;position:relative;overflow:hidden}
+.hero-card h1{margin:0;font-size:32px;line-height:1.05;letter-spacing:-.03em}
+.hero-card h1 span{color:#ffb199}
+.hero-card p{color:#d1d5db;line-height:1.6;font-size:14.5px;margin:12px 0 0;max-width:520px}
+.quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.quick span{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);padding:7px 10px;border-radius:999px;font-size:12.5px;font-weight:600}
+.upload-card{background:var(--panel);border:1.5px dashed #c9c4bb;border-radius:22px;padding:18px}
+@media(prefers-color-scheme:dark){.upload-card{border-color:#374151}}
+.drop{border-radius:16px;background:var(--panel2);min-height:172px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px;cursor:pointer}
+.drop.drag{background:#fff1eb;border:2px solid var(--accent)}
+.drop strong{font-size:16px}
+.drop p{margin:6px 0 0;color:var(--muted);font-size:13px;line-height:1.5}
+.btn{appearance:none;border:0;cursor:pointer;font-family:inherit;font-weight:700;border-radius:999px;padding:11px 16px;font-size:14px;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn-primary{background:var(--accent);color:white;box-shadow:0 8px 20px rgba(255,92,40,.28)}
+.btn-dark{background:var(--ink);color:var(--bg)}
+.btn-ghost{background:var(--panel);color:var(--ink);border:1px solid var(--line)}
+.btn-teal{background:var(--accent2);color:white}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.filetypes{display:flex;gap:6px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.filetypes span{font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;background:var(--panel);border:1px solid var(--line);padding:6px 8px;border-radius:999px;color:var(--muted)}
+/* Editor */
+.editor{display:none;grid-template-columns:1.55fr .95fr;gap:16px;align-items:start}
+.editor.show{display:grid}
+@media(max-width:900px){.editor{grid-template-columns:1fr}}
+.stage{background:#0b0c0f;border-radius:22px;overflow:hidden;border:1px solid #23242a}
+.stage-head{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;color:#e5e7eb}
+.stage-head b{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%}
+.stage-head span{font-size:12px;color:#9ca3af;font-weight:600}
+.viewport{background:#000;display:flex;align-items:center;justify-content:center;min-height:320px;max-height:62vh;position:relative;overflow:hidden}
+.viewport video,.viewport img{max-width:100%;max-height:62vh;display:block;object-fit:contain;transition:filter .15s}
+.viewport.ratio-9-16 video,.viewport.ratio-9-16 img{max-height:56vh}
+.text-overlay{position:absolute;left:50%;transform:translateX(-50%);width:88%;text-align:center;color:white;font-weight:800;font-size:clamp(18px,3.6vw,30px);line-height:1.2;text-shadow:0 2px 14px rgba(0,0,0,.85),0 1px 3px rgba(0,0,0,.9);pointer-events:none;white-space:pre-wrap;word-break:break-word}
+.text-overlay.top{top:18px}.text-overlay.center{top:50%;transform:translate(-50%,-50%)}.text-overlay.bottom{bottom:52px}
+.controls{padding:12px 14px 14px;color:white}
+.progress{height:6px;background:#2a2b33;border-radius:999px;overflow:hidden;cursor:pointer}
+.progress i{display:block;height:100%;background:var(--accent);width:0%}
+.time-row{display:flex;justify-content:space-between;font-size:12px;color:#9ca3af;margin-top:7px;font-variant-numeric:tabular-nums}
+.ctrl-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+.ctrl-btn{background:#1f2127;color:white;border:1px solid #2e3038;padding:9px 12px;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit}
+.ctrl-btn.active{background:white;color:black}
+.timeline{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px;margin-top:14px}
+.timeline h3{margin:0 0 4px;font-size:14px}
+.timeline p{margin:0;color:var(--muted);font-size:12.5px;line-height:1.5}
+.range-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+@media(max-width:560px){.range-grid{grid-template-columns:1fr}}
+label{font-size:12px;font-weight:700;letter-spacing:.02em;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:6px}
+label output{color:var(--ink);font-variant-numeric:tabular-nums}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.trim-vis{height:34px;background:repeating-linear-gradient(90deg,var(--panel2) 0 10px,transparent 10px 11px);border:1px solid var(--line);border-radius:10px;position:relative;margin-top:12px;overflow:hidden}
+.trim-sel{position:absolute;top:0;bottom:0;background:rgba(255,92,40,.18);border-left:3px solid var(--accent);border-right:3px solid var(--accent)}
+.playhead{position:absolute;top:0;bottom:0;width:2px;background:var(--ink)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.tabs{display:flex;background:var(--panel2);padding:6px;gap:6px}
+.tab{flex:1;border:0;background:transparent;padding:10px 6px;border-radius:12px;font-family:inherit;font-weight:800;font-size:13px;cursor:pointer;color:var(--muted)}
+.tab.active{background:var(--panel);color:var(--ink);box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.tabpane{display:none;padding:16px}
+.tabpane.active{display:block}
+.tabpane h3{margin:0 0 6px;font-size:15px}
+.tabpane .desc{margin:0 0 14px;color:var(--muted);font-size:13px;line-height:1.55}
+.filters{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.filter-btn{border:2px solid var(--line);background:var(--panel);border-radius:14px;padding:6px;cursor:pointer;text-align:center;font-family:inherit}
+.filter-btn.active{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,92,40,.15)}
+.filter-thumb{height:52px;border-radius:9px;background:linear-gradient(135deg,#f59e0b,#0ea5e9 55%,#111827);position:relative;overflow:hidden}
+.filter-thumb::after{content:"Aa";position:absolute;inset:auto 6px 4px auto;color:white;font-weight:900;font-size:12px;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+.filter-btn span{display:block;font-size:12px;font-weight:700;margin-top:7px;line-height:1.2}
+.filter-cats{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.cat-btn{border:1px solid var(--line);background:var(--panel2);color:var(--muted);font-family:inherit;font-weight:700;font-size:12px;padding:7px 11px;border-radius:999px;cursor:pointer}
+.cat-btn.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.swatch{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
+.swatch.active{border-color:var(--accent);box-shadow:0 0 0 3px rgba(255,92,40,.2)}
+.frame-gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.frame-item{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line);background:#000}
+.frame-item img{width:100%;display:block;aspect-ratio:16/10;object-fit:cover}
+.frame-item .fi-bar{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,.65);color:#fff;font-size:11px;font-weight:700;padding:4px 6px;gap:4px}
+.frame-item .fi-bar a,.frame-item .fi-bar button{color:#fff;background:rgba(255,255,255,.18);border:0;border-radius:6px;padding:3px 7px;font-size:11px;font-weight:700;cursor:pointer;text-decoration:none;font-family:inherit;white-space:nowrap}
+.sliders{display:grid;gap:14px}
+.ratios{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ratio-btn{padding:11px 6px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;color:var(--ink)}
+.ratio-btn.active{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+input[type=text],textarea,select{width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--ink);font-family:inherit;font-size:14px}
+textarea{resize:vertical;min-height:64px}
+.export-box{padding:16px;border-top:1px solid var(--line);background:var(--panel2)}
+.export-box p{font-size:12.5px;color:var(--muted);line-height:1.55;margin:8px 0 0}
+.progress-export{display:none;margin-top:10px}
+.progress-export.show{display:block}
+.bar{height:8px;background:var(--line);border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent2);width:0%;transition:width .2s}
+.features{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
+@media(max-width:800px){.features{grid-template-columns:1fr}}
+.feat{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px}
+.feat b{display:block;margin-bottom:6px}
+.feat p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}
+.empty-note{font-size:12.5px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.5}
+.toast{position:fixed;left:50%;bottom:18px;transform:translateX(-50%) translateY(20px);background:#111827;color:white;padding:11px 14px;border-radius:999px;font-size:13px;font-weight:700;opacity:0;pointer-events:none;transition:.25s;z-index:50;max-width:92vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="logo"><div class="logo-mark">✂️</div><div>Cut &amp; Filter<div style="font-size:12px;color:var(--muted);font-weight:600">Chỉnh sửa video &amp; ảnh nhanh</div></div></div>
+  <div class="pill">100% trên trình duyệt • Không tải lên server</div>
+</header>
+
+<div class="wrap">
+  <section class="hero" id="heroSection">
+    <div class="hero-card">
+      <h1>Cắt video gọn.<br>Lên màu <span>đẹp ngay.</span></h1>
+      <p>Kéo thả video hoặc ảnh vào, cắt đúng đoạn cần lấy, chọn bộ lọc điện ảnh / vintage / Nhật Bản… rồi xuất file ngay. Không cần cài app, không chờ upload — xử lý trực tiếp trên điện thoại &amp; máy tính của bạn.</p>
+      <div class="quick"><span>✂️ Cắt / Trim</span><span>🎨 30+ bộ lọc màu</span><span>📸 Tách ảnh từ video</span><span>✍️ Chèn chữ nhiều kiểu</span><span>🔄 Xoay &amp; khung 9:16, 1:1</span><span>🎵 Giữ nguyên âm thanh khi xuất*</span><span>⬇️ Tải xuống MP4/WebM &amp; JPG</span></div>
+    </div>
+    <div class="upload-card">
+      <div class="drop" id="dropZone" tabindex="0" role="button" aria-label="Chọn video hoặc ảnh">
+        <div style="font-size:34px">🎬</div>
+        <strong style="margin-top:8px">Thả file vào đây hoặc chạm để chọn</strong>
+        <p>Hỗ trợ video &amp; hình ảnh phổ biến.<br>File càng ngắn, xuất càng nhanh trên điện thoại.</p>
+        <button class="btn btn-primary" style="margin-top:14px" id="pickBtn">📂 Chọn video / ảnh</button>
+        <input type="file" id="fileInput" accept="video/*,image/*" class="hidden">
+      </div>
+      <div class="filetypes"><span>MP4</span><span>MOV</span><span>WEBM</span><span>JPG</span><span>PNG</span><span>WEBP</span></div>
+      <p class="empty-note">Mẹo đăng TikTok / Reels / Trạng thái: chọn khung <b>9:16</b> + lọc <b>Điện ảnh</b> hoặc <b>Tokyo Night</b>.</p>
+    </div>
+  </section>
+
+  <!-- EDITOR -->
+  <section class="editor" id="editor">
+    <div>
+      <div class="stage">
+        <div class="stage-head"><b id="fileName">video.mp4</b><span id="fileMeta">—</span></div>
+        <div class="viewport" id="viewport">
+          <video id="video" playsinline controlsList="nodownload"></video>
+          <img id="photo" class="hidden" alt="Ảnh đang chỉnh sửa">
+          <div class="text-overlay top hidden" id="textOverlay"></div>
+        </div>
+        <div class="controls" id="videoControls">
+          <div class="progress" id="progressBar"><i id="progressFill"></i></div>
+          <div class="time-row"><span id="curTime">0:00.0</span><span><span id="trimInfo">Toàn bộ</span> • <span id="durTime">0:00.0</span></span></div>
+          <div class="ctrl-row">
+            <button class="ctrl-btn" id="playBtn">▶ Phát</button>
+            <button class="ctrl-btn" id="restartTrimBtn">↺ Phát đoạn đã cắt</button>
+            <button class="ctrl-btn" id="muteBtn">🔊 Âm thanh</button>
+            <button class="ctrl-btn" data-speed="0.5">0.5×</button>
+            <button class="ctrl-btn active" data-speed="1">1×</button>
+            <button class="ctrl-btn" data-speed="1.5">1.5×</button>
+            <button class="ctrl-btn" data-speed="2">2×</button>
+            <button class="ctrl-btn" id="rotateBtn">🔄 Xoay 90°</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="timeline" id="trimBox">
+        <h3>✂️ Cắt video — chọn đoạn cần giữ</h3>
+        <p>Kéo 2 thanh dưới đây để đặt điểm bắt đầu / kết thúc. Bấm “Phát đoạn đã cắt” để xem trước đúng phần sẽ xuất.</p>
+        <div class="trim-vis"><div class="trim-sel" id="trimSel" style="left:0%;width:100%"></div><div class="playhead" id="playhead" style="left:0%"></div></div>
+        <div class="range-grid">
+          <div><label>Bắt đầu <output id="startOut">0:00.0</output></label><input type="range" id="startRange" min="0" max="100" step="0.1" value="0"></div>
+          <div><label>Kết thúc <output id="endOut">0:00.0</output></label><input type="range" id="endRange" min="0" max="100" step="0.1" value="100"></div>
+        </div>
+        <div class="row2" style="margin-top:10px">
+          <button class="btn btn-ghost" id="setStartBtn">⏮ Đặt bắt đầu = vị trí hiện tại</button>
+          <button class="btn btn-ghost" id="setEndBtn">Đặt kết thúc = vị trí hiện tại ⏭</button>
+        </div>
+      </div>
+    </div>
+
+    <aside class="panel">
+      <div class="tabs">
+        <button class="tab active" data-tab="filters">🎨 Bộ lọc</button>
+        <button class="tab" data-tab="adjust">🎚️ Chỉnh màu</button>
+        <button class="tab" data-tab="frame">▭ Khung &amp; Chữ</button>
+        <button class="tab" data-tab="frames">📸 Tách ảnh</button>
+      </div>
+
+      <div class="tabpane active" id="tab-filters">
+        <h3>30+ bộ lọc màu cho video &amp; ảnh</h3>
+        <p class="desc">Chạm để xem trước ngay. Lọc áp dụng cho cả khi xuất file và khi tách ảnh. Muốn màu mạnh / nhẹ hơn, sang tab Chỉnh màu và kéo “Độ bão hòa”.</p>
+        <div class="filter-cats" id="filterCats"></div>
+        <div class="filters" id="filterGrid"></div>
+      </div>
+
+      <div class="tabpane" id="tab-adjust">
+        <h3>Chỉnh màu thủ công</h3>
+        <p class="desc">Tinh chỉnh thêm sau khi chọn lọc. Bấm Đặt lại để về 100%.</p>
+        <div class="sliders">
+          <div><label>Độ sáng <output id="o-bright">100%</output></label><input type="range" id="adj-bright" min="50" max="160" value="100"></div>
+          <div><label>Tương phản <output id="o-contrast">100%</output></label><input type="range" id="adj-contrast" min="50" max="170" value="100"></div>
+          <div><label>Bão hòa màu <output id="o-sat">100%</output></label><input type="range" id="adj-sat" min="0" max="220" value="100"></div>
+          <div><label>Ấm ↔ Lạnh (sắc độ) <output id="o-hue">0°</output></label><input type="range" id="adj-hue" min="-40" max="40" value="0"></div>
+          <div><label>Làm mờ / nét mềm <output id="o-blur">0px</output></label><input type="range" id="adj-blur" min="0" max="4" step="0.5" value="0"></div>
+        </div>
+        <button class="btn btn-ghost" id="resetAdj" style="margin-top:14px;width:100%">↺ Đặt lại chỉnh màu</button>
+      </div>
+
+      <div class="tabpane" id="tab-frame">
+        <h3>Khung hình &amp; chữ trên video</h3>
+        <p class="desc">9:16 cho TikTok / Reels / Trạng thái, 1:1 cho bài đăng, 16:9 cho YouTube. Khung áp dụng khi xuất file.</p>
+        <div class="ratios" id="ratioGrid">
+          <button class="ratio-btn active" data-ratio="original">Gốc</button>
+          <button class="ratio-btn" data-ratio="9-16">9:16 Dọc</button>
+          <button class="ratio-btn" data-ratio="16-9">16:9 Ngang</button>
+          <button class="ratio-btn" data-ratio="1-1">1:1 Vuông</button>
+          <button class="ratio-btn" data-ratio="4-5">4:5</button>
+          <button class="ratio-btn" data-ratio="3-4">3:4</button>
+        </div>
+        <div style="margin-top:16px;display:grid;gap:10px">
+          <div><label style="color:var(--muted)">Chữ hiển thị (ví dụ: JAPAN NIGHTS)</label><textarea id="overlayText" placeholder="Nhập chữ muốn chèn lên video / ảnh..."></textarea></div>
+          <div class="row2">
+            <select id="overlayPos"><option value="top">Trên cùng</option><option value="center">Ở giữa</option><option value="bottom">Dưới cùng</option></select>
+            <select id="overlaySize"><option value="28">Chữ vừa</option><option value="36">Chữ lớn</option><option value="20">Chữ nhỏ</option><option value="48">Chữ rất lớn</option></select>
+          </div>
+          <div>
+            <label style="color:var(--muted)">Màu chữ</label>
+            <div class="swatches" id="colorSwatches">
+              <button type="button" class="swatch active" data-color="#ffffff" style="background:#ffffff" aria-label="Trắng"></button>
+              <button type="button" class="swatch" data-color="#111111" style="background:#111111" aria-label="Đen"></button>
+              <button type="button" class="swatch" data-color="#ffd60a" style="background:#ffd60a" aria-label="Vàng"></button>
+              <button type="button" class="swatch" data-color="#ff5c28" style="background:#ff5c28" aria-label="Cam"></button>
+              <button type="button" class="swatch" data-color="#2dd4bf" style="background:#2dd4bf" aria-label="Ngọc"></button>
+              <button type="button" class="swatch" data-color="#f472b6" style="background:#f472b6" aria-label="Hồng"></button>
+            </div>
+          </div>
+          <div class="row2">
+            <div><label style="color:var(--muted)">Kiểu chữ</label>
+              <select id="overlayStyle"><option value="shadow">Đổ bóng (dễ đọc)</option><option value="outline">Viền chữ đậm</option><option value="bg">Nền tối sau chữ</option><option value="neon">Phát sáng neon</option></select></div>
+            <div><label style="color:var(--muted)">Phông chữ</label>
+              <select id="overlayFont"><option value="bv">Hiện đại</option><option value="serif">Cổ điển (serif)</option><option value="mono">Mono</option></select></div>
+          </div>
+          <p class="desc" style="margin:0">Chỉ ghi chữ ở trên cùng như video trạng thái? Chọn vị trí “Trên cùng” và để trống phần dưới — đúng như vậy, app sẽ không tự thêm chữ nào khác.</p>
+        </div>
+      </div>
+
+      <div class="tabpane" id="tab-frames">
+        <h3>Tách ảnh từ video</h3>
+        <p class="desc">Lấy khung hình đẹp nhất trong video thành ảnh JPG. Ảnh tách ra đã áp sẵn bộ lọc, khung hình và chữ đang chọn — tiện làm ảnh bìa / thumbnail.</p>
+        <div id="framesVideoUI">
+          <button class="btn btn-teal" id="captureBtn" style="width:100%">📸 Chụp khung hình tại vị trí đang xem</button>
+          <div style="margin-top:14px">
+            <label style="color:var(--muted)">Tách tự động nhiều ảnh, chia đều trong đoạn đã cắt</label>
+            <div class="row2">
+              <select id="frameCount"><option value="4">4 ảnh</option><option value="6" selected>6 ảnh</option><option value="9">9 ảnh</option><option value="12">12 ảnh</option></select>
+              <button class="btn btn-dark" id="autoFramesBtn">Tách tự động</button>
+            </div>
+          </div>
+          <div class="frame-gallery" id="frameGallery"></div>
+          <p class="empty-note" id="framesEmpty">Chưa có ảnh nào. Phát video tới khoảnh khắc đẹp rồi bấm “Chụp khung hình”, hoặc tách tự động cả đoạn.</p>
+          <button class="btn btn-ghost hidden" id="clearFramesBtn" style="width:100%;margin-top:10px">🗑 Xóa tất cả ảnh đã tách</button>
+        </div>
+        <p class="desc hidden" id="framesImageNote" style="margin:0">Bạn đang mở một ảnh tĩnh — tính năng tách ảnh chỉ dùng cho video. Hãy tải một video lên để dùng.</p>
+      </div>
+
+      <div class="export-box">
+        <button class="btn btn-primary" id="exportBtn" style="width:100%;padding:14px">⬇️ Xuất &amp; tải file xuống</button>
+        <button class="btn btn-ghost" id="newFileBtn" style="width:100%;margin-top:8px">＋ Chọn file khác</button>
+        <div class="progress-export" id="exportProg"><div style="display:flex;justify-content:space-between;font-size:12px;font-weight:700;margin-bottom:6px"><span id="exportLabel">Đang xuất...</span><span id="exportPct">0%</span></div><div class="bar"><i id="exportBar"></i></div></div>
+        <p id="exportNote">Video sẽ xuất dạng <b>WebM</b> (mở tốt trên Chrome/Android, gửi Zalo/Messenger được). Ảnh xuất <b>JPG</b> chất lượng cao. Nếu video dài &gt; 60 giây, hãy cắt ngắn trước để xuất nhanh hơn trên iPhone.</p>
+      </div>
+    </aside>
+  </section>
+
+  <section class="features">
+    <div class="feat"><b>⚡ Nhẹ &amp; nhanh</b><p>Không upload lên máy chủ, không chờ đợi. Cắt và xem trước bộ lọc theo thời gian thực ngay trong trình duyệt.</p></div>
+    <div class="feat"><b>🎨 30+ lọc màu có gu</b><p>Điện ảnh, Cyberpunk, Kodak Gold, Fuji, Tokyo Night, Pastel… chia theo nhóm Phong cách / Cổ điển &amp; Film / Màu sắc / Đơn sắc, cân sẵn cho video đêm, du lịch, chân dung và đồ ăn. Thêm tab Tách ảnh để lấy khung hình đẹp nhất làm ảnh JPG, và chèn chữ với 6 màu, 4 kiểu (đổ bóng, viền, nền tối, neon).</p></div>
+    <div class="feat"><b>📱 Chuẩn đăng mạng xã hội</b><p>Đổi khung 9:16 trong 1 chạm, chèn chữ ở trên cùng, cắt đúng đoạn hay nhất rồi tải xuống đăng ngay.</p></div>
+  </section>
+  <p style="text-align:center;color:var(--muted);font-size:12px;margin-top:16px;line-height:1.6">* Giữ âm thanh: trình duyệt hỗ trợ sẽ ghi kèm tiếng gốc khi xuất video. Một số iPhone/Safari cũ có thể xuất video không tiếng — hãy thử Chrome nếu cần tiếng.</p>
+</div>
+
+<div class="toast" id="toast"></div>
+<canvas id="workCanvas" class="hidden"></canvas>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const video=$('#video'), photo=$('#photo'), viewport=$('#viewport'), overlay=$('#textOverlay');
+let fileType=null, objectUrl=null, duration=0, startT=0, endT=0, rotation=0, currentFilter='none', ratio='original';
+let adj={bright:100,contrast:100,sat:100,hue:0,blur:0};
+let filterCat='all', overlayColor='#ffffff', overlayStyle='shadow', overlayFont='bv';
+const FONT_MAP={bv:'"Be Vietnam Pro", sans-serif',serif:'Georgia, "Times New Roman", serif',mono:'ui-monospace, Menlo, Consolas, monospace'};
+const CATS=[['all','Tất cả'],['style','Phong cách'],['classic','Cổ điển & Film'],['color','Màu sắc'],['mono','Đơn sắc']];
+
+const FILTERS=[
+ {id:'none',name:'Gốc',cat:'style',css:'none',thumb:'none'},
+ {id:'cinematic',name:'Điện ảnh',cat:'style',css:'contrast(1.18) saturate(1.12) brightness(.96) hue-rotate(-6deg)',thumb:'contrast(1.2) saturate(1.1) brightness(.9)'},
+ {id:'tokyo',name:'Tokyo Night',cat:'style',css:'contrast(1.22) saturate(1.25) brightness(1.02) hue-rotate(8deg)',thumb:'contrast(1.25) saturate(1.3) hue-rotate(10deg)'},
+ {id:'cyber',name:'Cyberpunk',cat:'style',css:'saturate(1.55) contrast(1.18) brightness(1.03) hue-rotate(-16deg)',thumb:'saturate(1.7) contrast(1.2) hue-rotate(-18deg)'},
+ {id:'neon',name:'Neon rực',cat:'style',css:'saturate(1.9) contrast(1.22) brightness(1.06)',thumb:'saturate(2) contrast(1.25) brightness(1.08)'},
+ {id:'tealorange',name:'Cam & Teal',cat:'style',css:'contrast(1.16) saturate(1.22) hue-rotate(-10deg)',thumb:'contrast(1.18) saturate(1.25) hue-rotate(-12deg)'},
+ {id:'hdr',name:'HDR nét',cat:'style',css:'contrast(1.32) saturate(1.35) brightness(1.02)',thumb:'contrast(1.35) saturate(1.4)'},
+ {id:'lomo',name:'Lomo',cat:'style',css:'saturate(1.45) contrast(1.28) brightness(.97)',thumb:'saturate(1.5) contrast(1.3) brightness(.95)'},
+ {id:'vintage',name:'Vintage',cat:'classic',css:'sepia(.45) contrast(1.05) brightness(1.05) saturate(.85)',thumb:'sepia(.6) contrast(1.05)'},
+ {id:'film',name:'Film 35mm',cat:'classic',css:'sepia(.22) contrast(1.12) saturate(.92) brightness(1.02)',thumb:'sepia(.3) contrast(1.15) saturate(.9)'},
+ {id:'kodak',name:'Kodak Gold',cat:'classic',css:'sepia(.32) saturate(1.18) contrast(1.06) brightness(1.04) hue-rotate(-6deg)',thumb:'sepia(.4) saturate(1.25) brightness(1.05)'},
+ {id:'fuji',name:'Fuji Xanh',cat:'classic',css:'contrast(1.08) saturate(1.06) hue-rotate(14deg) brightness(1.02)',thumb:'contrast(1.1) saturate(1.1) hue-rotate(16deg)'},
+ {id:'retro',name:'Retro 90s',cat:'classic',css:'sepia(.18) saturate(1.32) contrast(.94) brightness(1.09)',thumb:'sepia(.25) saturate(1.4) contrast(.92) brightness(1.1)'},
+ {id:'sepia',name:'Sepia cổ',cat:'classic',css:'sepia(.85) contrast(1.03) brightness(1)',thumb:'sepia(.9) contrast(1.05)'},
+ {id:'fade',name:'Fade Nhật',cat:'classic',css:'brightness(1.1) contrast(.86) saturate(.88) sepia(.12)',thumb:'brightness(1.12) contrast(.82) saturate(.85)'},
+ {id:'matte',name:'Matte mờ',cat:'classic',css:'contrast(.86) brightness(1.09) saturate(.92)',thumb:'contrast(.84) brightness(1.12) saturate(.9)'},
+ {id:'warm',name:'Ấm áp',cat:'color',css:'sepia(.28) saturate(1.22) brightness(1.06) contrast(1.02)',thumb:'sepia(.35) saturate(1.3) brightness(1.08)'},
+ {id:'sunset',name:'Hoàng hôn',cat:'color',css:'sepia(.18) saturate(1.45) contrast(1.08) brightness(1.05) hue-rotate(-12deg)',thumb:'saturate(1.6) hue-rotate(-15deg) brightness(1.05)'},
+ {id:'golden',name:'Giờ vàng',cat:'color',css:'sepia(.24) saturate(1.5) contrast(1.06) brightness(1.08)',thumb:'sepia(.3) saturate(1.6) brightness(1.1)'},
+ {id:'cool',name:'Mát lạnh',cat:'color',css:'saturate(1.05) brightness(1.04) hue-rotate(18deg) contrast(1.05)',thumb:'hue-rotate(25deg) saturate(1.1) brightness(1.05)'},
+ {id:'ocean',name:'Biển xanh',cat:'color',css:'hue-rotate(14deg) saturate(1.32) brightness(1.03) contrast(1.08)',thumb:'hue-rotate(18deg) saturate(1.4) contrast(1.1)'},
+ {id:'forest',name:'Rừng xanh',cat:'color',css:'hue-rotate(28deg) saturate(1.22) contrast(1.06) brightness(1.01)',thumb:'hue-rotate(32deg) saturate(1.3) contrast(1.08)'},
+ {id:'peach',name:'Đào hồng',cat:'color',css:'sepia(.14) saturate(1.28) brightness(1.1) hue-rotate(-10deg)',thumb:'sepia(.2) saturate(1.35) brightness(1.12) hue-rotate(-12deg)'},
+ {id:'vivid',name:'Rực rỡ',cat:'color',css:'saturate(1.65) contrast(1.12) brightness(1.03)',thumb:'saturate(1.8) contrast(1.15)'},
+ {id:'pastel',name:'Pastel',cat:'color',css:'saturate(.78) brightness(1.12) contrast(.88)',thumb:'saturate(.7) brightness(1.18) contrast(.85)'},
+ {id:'dream',name:'Mơ màng',cat:'color',css:'brightness(1.12) contrast(.9) saturate(1.08) blur(.4px)',thumb:'brightness(1.15) contrast(.88) saturate(1.1)'},
+ {id:'food',name:'Đồ ăn ngon',cat:'color',css:'saturate(1.38) contrast(1.1) brightness(1.05)',thumb:'saturate(1.45) contrast(1.12)'},
+ {id:'portrait',name:'Chân dung',cat:'color',css:'brightness(1.07) contrast(1.02) saturate(1.1) sepia(.08)',thumb:'brightness(1.1) saturate(1.12) sepia(.1)'},
+ {id:'bw',name:'Trắng đen',cat:'mono',css:'grayscale(1) contrast(1.15)',thumb:'grayscale(1) contrast(1.2)'},
+ {id:'noir',name:'Noir',cat:'mono',css:'grayscale(1) contrast(1.35) brightness(.92)',thumb:'grayscale(1) contrast(1.4) brightness(.85)'},
+ {id:'chrome',name:'Chrome bạc',cat:'mono',css:'contrast(1.4) saturate(.35) brightness(1.06)',thumb:'contrast(1.45) saturate(.3) brightness(1.08)'},
+ {id:'duotone',name:'Hai tông',cat:'mono',css:'grayscale(.55) sepia(.45) contrast(1.12) hue-rotate(-8deg)',thumb:'grayscale(.6) sepia(.5) contrast(1.15)'},
+ {id:'invert',name:'Âm bản',cat:'mono',css:'invert(.92)',thumb:'invert(.9)'},
+];
+function buildFilters(){
+  $('#filterCats').innerHTML=CATS.map(([id,n])=>`<button class="cat-btn ${id===filterCat?'active':''}" data-cat="${id}">${n}</button>`).join('');
+  $$('#filterCats .cat-btn').forEach(b=>b.onclick=()=>{filterCat=b.dataset.cat;buildFilters()});
+  const list=FILTERS.filter(f=>filterCat==='all'||f.cat===filterCat);
+  $('#filterGrid').innerHTML=list.map(f=>`<button class="filter-btn ${f.id===currentFilter?'active':''}" data-id="${f.id}"><div class="filter-thumb" style="filter:${f.thumb}"></div><span>${f.name}</span></button>`).join('');
+  $$('.filter-btn').forEach(b=>b.onclick=()=>{currentFilter=b.dataset.id;buildFilters();applyVisual();toast('Đã áp dụng lọc: '+FILTERS.find(x=>x.id===currentFilter).name)});
+}
+function filterString(){
+  const base=FILTERS.find(f=>f.id===currentFilter)?.css||'none';
+  const extra=`brightness(${adj.bright}%) contrast(${adj.contrast}%) saturate(${adj.sat}%) hue-rotate(${adj.hue}deg) blur(${adj.blur}px)`;
+  return base==='none'?extra:base+' '+extra;
+}
+function applyVisual(){
+  const fs=filterString();
+  video.style.filter=fs; photo.style.filter=fs;
+  const t=`rotate(${rotation}deg)`;
+  video.style.transform=t; photo.style.transform=t;
+  viewport.className='viewport ratio-'+ratio;
+}
+function fmt(s){if(!isFinite(s))s=0;const m=Math.floor(s/60),sec=(s%60).toFixed(1).padStart(4,'0');return `${m}:${sec}`}
+function toast(msg){const t=$('#toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400)}
+// Upload
+const drop=$('#dropZone'), input=$('#fileInput');
+$('#pickBtn').onclick=e=>{e.stopPropagation();input.click()};
+drop.onclick=()=>input.click();
+drop.ondragover=e=>{e.preventDefault();drop.classList.add('drag')};
+drop.ondragleave=()=>drop.classList.remove('drag');
+drop.ondrop=e=>{e.preventDefault();drop.classList.remove('drag');if(e.dataTransfer.files[0])loadFile(e.dataTransfer.files[0])};
+input.onchange=()=>{if(input.files[0])loadFile(input.files[0])};
+$('#newFileBtn').onclick=()=>input.click();
+
+function loadFile(file){
+  if(objectUrl)URL.revokeObjectURL(objectUrl);
+  objectUrl=URL.createObjectURL(file);
+  $('#fileName').textContent=file.name;
+  $('#fileMeta').textContent=(file.size/1024/1024).toFixed(2)+' MB • '+file.type.split('/')[0];
+  $('#editor').classList.add('show');
+  $('#heroSection').style.display='none';
+  rotation=0; startT=0;
+  if(file.type.startsWith('image/')){
+    fileType='image'; photo.src=objectUrl; photo.classList.remove('hidden'); video.classList.add('hidden'); $('#videoControls').style.display='none'; $('#trimBox').style.display='none';
+    photo.onload=()=>{$('#fileMeta').textContent+=` • ${photo.naturalWidth}×${photo.naturalHeight}`};
+  }else{
+    fileType='video'; video.src=objectUrl; video.classList.remove('hidden'); photo.classList.add('hidden'); $('#videoControls').style.display='block'; $('#trimBox').style.display='block';
+    video.onloadedmetadata=()=>{duration=video.duration; endT=duration; $('#durTime').textContent=fmt(duration); $('#startRange').max=duration; $('#endRange').max=duration; $('#startRange').value=0; $('#endRange').value=duration; syncTrim(); $('#fileMeta').textContent+=` • ${video.videoWidth}×${video.videoHeight} • ${fmt(duration)}`;};
+  }
+  $('#framesVideoUI').style.display=fileType==='video'?'block':'none';
+  $('#framesImageNote').classList.toggle('hidden',fileType==='video');
+  applyVisual();
+  setTimeout(()=>$('#editor').scrollIntoView({behavior:'smooth',block:'start'}),80);
+  toast(fileType==='image'?'Đã tải ảnh — chọn bộ lọc rồi xuất JPG':'Đã tải video — cắt đoạn & chọn lọc nhé');
+}
+// Tabs
+$$('.tab').forEach(t=>t.onclick=()=>{$$('.tab').forEach(x=>x.classList.remove('active'));t.classList.add('active');$$('.tabpane').forEach(p=>p.classList.remove('active'));$('#tab-'+t.dataset.tab).classList.add('active')});
+// Playback
+$('#playBtn').onclick=()=>{if(video.paused){video.play();$('#playBtn').textContent='⏸ Tạm dừng'}else{video.pause();$('#playBtn').textContent='▶ Phát'}};
+video.addEventListener('play',()=>$('#playBtn').textContent='⏸ Tạm dừng');
+video.addEventListener('pause',()=>$('#playBtn').textContent='▶ Phát');
+video.addEventListener('timeupdate',()=>{
+  $('#curTime').textContent=fmt(video.currentTime);
+  if(duration){const p=video.currentTime/duration*100;$('#progressFill').style.width=p+'%';$('#playhead').style.left=p+'%';}
+  if(endT && video.currentTime>=endT && !video.paused){video.pause();video.currentTime=startT;}
+});
+$('#progressBar').onclick=e=>{const r=e.currentTarget.getBoundingClientRect();const p=(e.clientX-r.left)/r.width;video.currentTime=p*duration};
+$('#muteBtn').onclick=()=>{video.muted=!video.muted;$('#muteBtn').textContent=video.muted?'🔇 Đã tắt tiếng':'🔊 Âm thanh'};
+$$('[data-speed]').forEach(b=>b.onclick=()=>{$$('[data-speed]').forEach(x=>x.classList.remove('active'));b.classList.add('active');video.playbackRate=parseFloat(b.dataset.speed)});
+$('#rotateBtn').onclick=()=>{rotation=(rotation+90)%360;applyVisual()};
+$('#restartTrimBtn').onclick=()=>{video.currentTime=startT;video.play()};
+// Trim
+function syncTrim(){
+  startT=parseFloat($('#startRange').value); endT=parseFloat($('#endRange').value);
+  if(startT>endT-0.3){if(document.activeElement.id==='startRange'){startT=endT-0.3;$('#startRange').value=startT}else{endT=startT+0.3;$('#endRange').value=endT}}
+  $('#startOut').textContent=fmt(startT); $('#endOut').textContent=fmt(endT);
+  $('#trimInfo').textContent=`Đoạn giữ: ${fmt(startT)} → ${fmt(endT)} (${fmt(endT-startT)})`;
+  if(duration){$('#trimSel').style.left=(startT/duration*100)+'%';$('#trimSel').style.width=((endT-startT)/duration*100)+'%';}
+}
+$('#startRange').oninput=syncTrim; $('#endRange').oninput=syncTrim;
+$('#setStartBtn').onclick=()=>{$('#startRange').value=video.currentTime;syncTrim();toast('Đã đặt điểm bắt đầu: '+fmt(video.currentTime))};
+$('#setEndBtn').onclick=()=>{$('#endRange').value=video.currentTime;syncTrim();toast('Đã đặt điểm kết thúc: '+fmt(video.currentTime))};
+// Adjust
+[['bright','o-bright','%'],['contrast','o-contrast','%'],['sat','o-sat','%'],['hue','o-hue','°'],['blur','o-blur','px']].forEach(([k,out,suf])=>{
+  $('#adj-'+k).oninput=e=>{adj[k]=parseFloat(e.target.value);$('#'+out).textContent=e.target.value+suf;applyVisual()};
+});
+$('#resetAdj').onclick=()=>{adj={bright:100,contrast:100,sat:100,hue:0,blur:0};['bright','contrast','sat','hue','blur'].forEach(k=>{const el=$('#adj-'+k);el.value=adj[k];el.dispatchEvent(new Event('input'))});applyVisual()};
+// Ratio + overlay
+$$('#ratioGrid .ratio-btn').forEach(b=>b.onclick=()=>{$$('#ratioGrid .ratio-btn').forEach(x=>x.classList.remove('active'));b.classList.add('active');ratio=b.dataset.ratio;applyVisual()});
+function syncOverlay(){
+  const txt=$('#overlayText').value.trim();
+  overlay.textContent=txt;
+  overlay.className='text-overlay '+$('#overlayPos').value+(txt?'':' hidden');
+  overlay.style.fontSize=$('#overlaySize').value+'px';
+  overlay.style.color=overlayColor;
+  overlay.style.fontFamily=FONT_MAP[overlayFont];
+  overlay.style.webkitTextStroke=''; overlay.style.background=''; overlay.style.padding=''; overlay.style.borderRadius=''; overlay.style.width='88%'; overlay.style.maxWidth='';
+  overlay.style.textShadow='0 2px 14px rgba(0,0,0,.85),0 1px 3px rgba(0,0,0,.9)';
+  if(overlayStyle==='outline'){overlay.style.webkitTextStroke='2px rgba(0,0,0,.85)'}
+  if(overlayStyle==='bg'){overlay.style.background='rgba(0,0,0,.55)';overlay.style.padding='8px 14px';overlay.style.borderRadius='12px';overlay.style.width='fit-content';overlay.style.maxWidth='88%';overlay.style.textShadow='none'}
+  if(overlayStyle==='neon'){overlay.style.textShadow=`0 0 6px ${overlayColor},0 0 18px ${overlayColor},0 0 34px ${overlayColor}`}
+}
+$('#overlayText').oninput=syncOverlay; $('#overlayPos').onchange=syncOverlay; $('#overlaySize').onchange=syncOverlay;
+$$('#colorSwatches .swatch').forEach(b=>b.onclick=()=>{$$('#colorSwatches .swatch').forEach(x=>x.classList.remove('active'));b.classList.add('active');overlayColor=b.dataset.color;syncOverlay()});
+$('#overlayStyle').onchange=e=>{overlayStyle=e.target.value;syncOverlay()};
+$('#overlayFont').onchange=e=>{overlayFont=e.target.value;syncOverlay()};
+
+// Export helpers
+function targetSize(sw,sh){
+  if(ratio==='original')return[sw,sh];
+  let w=sw,h=sh; const map={'9-16':[9,16],'16-9':[16,9],'1-1':[1,1],'4-5':[4,5],'3-4':[3,4]}; const [rw,rh]=map[ratio]; const target=rw/rh; const cur=sw/sh;
+  if(cur>target){w=Math.round(sh*target)}else{h=Math.round(sw/target)}
+  // cap at 1280 long edge for speed on phones
+  const scale=Math.min(1,1280/Math.max(w,h)); return [Math.round(w*scale/2)*2, Math.round(h*scale/2)*2];
+}
+function drawCover(ctx,media,sw,sh,cw,ch){
+  // center-crop cover to fill cw x ch, respecting rotation (only 0/180 keep simple; 90/270 swap)
+  ctx.save(); ctx.filter=filterString();
+  if(rotation===90||rotation===270){ctx.translate(cw/2,ch/2);ctx.rotate(rotation*Math.PI/180);const s=Math.max(ch/sw,cw/sh);ctx.drawImage(media,-sw*s/2,-sh*s/2,sw*s,sh*s);}
+  else{ if(rotation===180){ctx.translate(cw/2,ch/2);ctx.rotate(Math.PI);ctx.translate(-cw/2,-ch/2);} const s=Math.max(cw/sw,ch/sh); const dw=sw*s,dh=sh*s; ctx.drawImage(media,(cw-dw)/2,(ch-dh)/2,dw,dh);}
+  ctx.restore();
+  // text
+  const txt=$('#overlayText').value.trim(); if(txt){ctx.save();
+    const size=Math.max(18,parseInt($('#overlaySize').value)*(cw/720||1));
+    ctx.font=`800 ${size}px ${FONT_MAP[overlayFont]}`;
+    ctx.textAlign='center'; ctx.fillStyle=overlayColor;
+    const pos=$('#overlayPos').value; const lines=txt.split('\n'); const lh=size*1.25;
+    let y0=pos==='top'?size+18:pos==='center'?ch/2-(lines.length-1)*lh/2:ch-36-(lines.length-1)*lh;
+    if(overlayStyle==='bg'){
+      ctx.fillStyle='rgba(0,0,0,.55)';
+      lines.forEach((line,i)=>{const wdt=ctx.measureText(line).width;const bx=cw/2-wdt/2-14,by=y0+i*lh-size-8,bw=wdt+28,bh=size+16;ctx.beginPath();if(ctx.roundRect)ctx.roundRect(bx,by,bw,bh,10);else ctx.rect(bx,by,bw,bh);ctx.fill()});
+      ctx.fillStyle=overlayColor;
+    }else if(overlayStyle==='neon'){ctx.shadowColor=overlayColor;ctx.shadowBlur=26;ctx.shadowOffsetY=0}
+    else{ctx.shadowColor='rgba(0,0,0,.85)';ctx.shadowBlur=14;ctx.shadowOffsetY=2}
+    lines.forEach((line,i)=>{const y=y0+i*lh;
+      if(overlayStyle==='outline'){ctx.save();ctx.shadowColor='transparent';ctx.lineWidth=Math.max(3,size/9);ctx.strokeStyle='rgba(0,0,0,.9)';ctx.lineJoin='round';ctx.strokeText(line,cw/2,y,cw*.9);ctx.restore()}
+      ctx.fillText(line,cw/2,y,cw*.9);
+      if(overlayStyle==='neon')ctx.fillText(line,cw/2,y,cw*.9);
+    });
+    ctx.restore();}
+}
+function setExport(pct,label){$('#exportProg').classList.add('show');$('#exportBar').style.width=pct+'%';$('#exportPct').textContent=Math.round(pct)+'%';if(label)$('#exportLabel').textContent=label}
+
+$('#exportBtn').onclick=async()=>{
+  if(!fileType){toast('Hãy chọn file trước');return}
+  const canvas=$('#workCanvas'), ctx=canvas.getContext('2d');
+  if(fileType==='image'){
+    const [w,h]=targetSize(photo.naturalWidth,photo.naturalHeight); canvas.width=w;canvas.height=h;
+    drawCover(ctx,photo,photo.naturalWidth,photo.naturalHeight,w,h);
+    canvas.toBlob(b=>{download(b,'anh-da-chinh-sua.jpg');toast('Đã tải ảnh xuống ✅')},'image/jpeg',0.92); return;
+  }
+  // Video export via MediaRecorder
+  if(!window.MediaRecorder){toast('Trình duyệt này không hỗ trợ xuất video — hãy thử Chrome');return}
+  const btn=$('#exportBtn'); btn.disabled=true; setExport(2,'Đang chuẩn bị...');
+  const wasMuted=video.muted; const prevTime=video.currentTime;
+  const [w,h]=targetSize(video.videoWidth,video.videoHeight); canvas.width=w; canvas.height=h;
+  const stream=canvas.captureStream(30);
+  try{ const vs=video.captureStream?video.captureStream():null; if(vs){vs.getAudioTracks().forEach(t=>stream.addTrack(t))} }catch(e){}
+  let mime='video/webm;codecs=vp9,opus'; if(!MediaRecorder.isTypeSupported(mime))mime='video/webm';
+  const rec=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:6_000_000}); const chunks=[];
+  rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+  const segDur=Math.max(.5,endT-startT);
+  rec.onstop=()=>{const blob=new Blob(chunks,{type:'video/webm'});download(blob,'video-da-cat.webm');video.muted=wasMuted;video.currentTime=prevTime;btn.disabled=false;setExport(100,'Hoàn tất ✅');setTimeout(()=>$('#exportProg').classList.remove('show'),1800);toast('Đã xuất video — kiểm tra thư mục Tải xuống')};
+  video.muted=false; // need audio track flowing; volume stays via stream
+  video.currentTime=startT;
+  await new Promise(r=>{video.onseeked=r; setTimeout(r,600)});
+  rec.start(200); video.play();
+  const t0=Date.now();
+  (function loop(){
+    if(video.currentTime>=endT||video.ended){video.pause(); if(rec.state!=='inactive')rec.stop(); return}
+    drawCover(ctx,video,video.videoWidth,video.videoHeight,w,h);
+    setExport(Math.min(98,((video.currentTime-startT)/segDur)*100),'Đang xuất đoạn '+fmt(startT)+' → '+fmt(endT)+' (giữ nguyên tốc độ thực)...');
+    requestAnimationFrame(loop);
+  })();
+};
+function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
+
+// ===== Tách ảnh từ video =====
+const frameItems=[];
+function renderFrames(){
+  const g=$('#frameGallery');
+  g.innerHTML=frameItems.map((f,i)=>`<div class="frame-item"><img src="${f.url}" alt="Khung hình tại ${f.label}"><div class="fi-bar"><span>${f.label}</span><span style="display:flex;gap:4px"><a href="${f.url}" download="khung-hinh-${i+1}.jpg">⬇ Tải</a><button data-rm="${i}" aria-label="Xóa ảnh">✕</button></span></div></div>`).join('');
+  $('#framesEmpty').style.display=frameItems.length?'none':'block';
+  $('#clearFramesBtn').classList.toggle('hidden',frameItems.length===0);
+  g.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{const i=+b.dataset.rm;URL.revokeObjectURL(frameItems[i].url);frameItems.splice(i,1);renderFrames()});
+}
+function grabFrameBlob(){
+  const c=document.createElement('canvas');
+  const [w,h]=targetSize(video.videoWidth,video.videoHeight); c.width=w; c.height=h;
+  drawCover(c.getContext('2d'),video,video.videoWidth,video.videoHeight,w,h);
+  return new Promise(r=>c.toBlob(r,'image/jpeg',0.92));
+}
+function seekTo(t){return new Promise(res=>{let done=false;const fin=()=>{if(!done){done=true;video.removeEventListener('seeked',fin);res()}};video.addEventListener('seeked',fin);video.currentTime=t;setTimeout(fin,900)})}
+$('#captureBtn').onclick=async()=>{
+  if(fileType!=='video'){toast('Hãy tải video trước');return}
+  const blob=await grabFrameBlob();
+  if(!blob){toast('Chưa lấy được khung hình — hãy phát video một chút rồi chụp lại');return}
+  frameItems.push({url:URL.createObjectURL(blob),label:fmt(video.currentTime)});
+  renderFrames(); toast('Đã tách 1 ảnh tại '+fmt(video.currentTime)+' 📸');
+};
+$('#autoFramesBtn').onclick=async()=>{
+  if(fileType!=='video'){toast('Hãy tải video trước');return}
+  const btn=$('#autoFramesBtn'); btn.disabled=true; btn.textContent='Đang tách...';
+  const n=parseInt($('#frameCount').value);
+  video.pause();
+  const prev=video.currentTime, span=Math.max(0,endT-startT);
+  let got=0;
+  for(let i=0;i<n;i++){
+    const t=startT+span*((i+0.5)/n);
+    await seekTo(Math.min(t,Math.max(0,duration-0.05)));
+    const blob=await grabFrameBlob();
+    if(blob){frameItems.push({url:URL.createObjectURL(blob),label:fmt(video.currentTime)});got++}
+  }
+  video.currentTime=prev;
+  renderFrames(); btn.disabled=false; btn.textContent='Tách tự động';
+  toast(got?'Đã tách '+got+' ảnh từ video 📸':'Không tách được ảnh — thử phát video trước một chút');
+};
+$('#clearFramesBtn').onclick=()=>{frameItems.forEach(f=>URL.revokeObjectURL(f.url));frameItems.length=0;renderFrames();toast('Đã xóa ảnh đã tách')};
+buildFilters(); applyVisual();
+</script>
+</body>
+</html>
